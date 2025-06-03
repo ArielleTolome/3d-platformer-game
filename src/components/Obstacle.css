@@ -1,0 +1,67 @@
+.obstacle {
+  position: absolute;
+  bottom: 0;
+  left: 50%;
+  margin-left: -20px;
+  transform-style: preserve-3d;
+}
+
+.obstacle-block {
+  width: 40px;
+  height: 40px;
+  background: linear-gradient(135deg, #8B4513 0%, #654321 100%);
+  border: 2px solid #5D4E37;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+  position: relative;
+}
+
+.obstacle-block::before {
+  content: '';
+  position: absolute;
+  top: -2px;
+  left: -2px;
+  right: -2px;
+  height: 5px;
+  background: #A0522D;
+}
+
+.obstacle-block::after {
+  content: '';
+  position: absolute;
+  inset: 5px;
+  background: repeating-linear-gradient(
+    45deg,
+    transparent,
+    transparent 5px,
+    rgba(0,0,0,0.1) 5px,
+    rgba(0,0,0,0.1) 10px
+  );
+}
+
+.obstacle-slide {
+  width: 60px;
+  height: 60px;
+  margin-left: -30px;
+}
+
+.obstacle-slide::before {
+  content: '';
+  position: absolute;
+  width: 60px;
+  height: 40px;
+  background: linear-gradient(to bottom, #FF6347 0%, #DC143C 100%);
+  transform: rotateX(45deg) translateZ(20px);
+  border-radius: 5px;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+}
+
+.obstacle-slide::after {
+  content: '';
+  position: absolute;
+  width: 10px;
+  height: 80px;
+  background: #333;
+  left: 25px;
+  bottom: -20px;
+  border-radius: 2px;
+}
