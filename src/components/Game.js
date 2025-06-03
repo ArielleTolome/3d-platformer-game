@@ -17,6 +17,8 @@ const Game = () => {
   const [collectibles, setCollectibles] = useState([]);
   const [pathSegments, setPathSegments] = useState([]);
   const [speed, setSpeed] = useState(5);
+  const [isJumping, setIsJumping] = useState(false);
+  const [jumpVelocity, setJumpVelocity] = useState(0);
   const gameRef = useRef(null);
   const animationRef = useRef(null);
   const lastTimeRef = useRef(0);
@@ -86,17 +88,17 @@ const Game = () => {
         break;
       case 'ArrowUp':
       case ' ':
-        setPlayerPosition(prev => ({ ...prev, y: 50 }));
-        setTimeout(() => {
-          setPlayerPosition(prev => ({ ...prev, y: 0 }));
-        }, 500);
+        if (!isJumping && playerPosition.y === 0) {
+          setIsJumping(true);
+          setJumpVelocity(12);
+        }
         break;
       case 'ArrowDown':
         break;
       default:
         break;
     }
-  }, [gameState, playerLane]);
+  }, [gameState, playerLane, isJumping, playerPosition.y]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyPress);
@@ -143,6 +145,21 @@ const Game = () => {
     const deltaTime = timestamp - lastTimeRef.current;
     lastTimeRef.current = timestamp;
 
+    // Handle jumping physics
+    if (isJumping) {
+      const gravity = 0.8;
+      const newVelocity = jumpVelocity - gravity;
+      const newY = Math.max(0, playerPosition.y + newVelocity);
+      
+      setJumpVelocity(newVelocity);
+      setPlayerPosition(prev => ({ ...prev, y: newY }));
+      
+      if (newY === 0) {
+        setIsJumping(false);
+        setJumpVelocity(0);
+      }
+    }
+
     const currentSpeed = speed + Math.floor(score / 100) * 0.5;
 
     setPathSegments(prev => prev.map(segment => ({
@@ -177,7 +194,7 @@ const Game = () => {
     checkCollisions();
 
     animationRef.current = requestAnimationFrame(gameLoop);
-  }, [gameState, speed, score, generateSegment, checkCollisions]);
+  }, [gameState, speed, score, generateSegment, checkCollisions, isJumping, jumpVelocity, playerPosition.y]);
 
   useEffect(() => {
     if (gameState === 'playing') {
@@ -199,6 +216,8 @@ const Game = () => {
     setObstacles([]);
     setCollectibles([]);
     setSpeed(5);
+    setIsJumping(false);
+    setJumpVelocity(0);
     
     const initialSegments = [];
     for (let i = 0; i < VISIBLE_SEGMENTS; i++) {
