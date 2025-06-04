@@ -6,6 +6,7 @@ import Obstacle from './Obstacle';
 import Coin from './Coin';
 import Score from './Score';
 import GameOver from './GameOver';
+import soundManager from '../utils/SoundManager';
 
 const Game = () => {
   const [gameState, setGameState] = useState('playing');
@@ -17,6 +18,7 @@ const Game = () => {
   const [collectibles, setCollectibles] = useState([]);
   const [pathSegments, setPathSegments] = useState([]);
   const [speed, setSpeed] = useState(5);
+  const [soundEnabled, setSoundEnabled] = useState(true);
   const gameRef = useRef(null);
   const animationRef = useRef(null);
   const lastTimeRef = useRef(0);
@@ -74,18 +76,21 @@ const Game = () => {
     switch(e.key) {
       case 'ArrowLeft':
         if (playerLane > 0) {
+          soundManager.playSound('whoosh');
           setPlayerLane(prev => prev - 1);
           setPlayerPosition(prev => ({ ...prev, x: LANES[playerLane - 1] }));
         }
         break;
       case 'ArrowRight':
         if (playerLane < 2) {
+          soundManager.playSound('whoosh');
           setPlayerLane(prev => prev + 1);
           setPlayerPosition(prev => ({ ...prev, x: LANES[playerLane + 1] }));
         }
         break;
       case 'ArrowUp':
       case ' ':
+        soundManager.playSound('jump');
         setPlayerPosition(prev => ({ ...prev, y: 50 }));
         setTimeout(() => {
           setPlayerPosition(prev => ({ ...prev, y: 0 }));
@@ -114,10 +119,12 @@ const Game = () => {
     for (const obstacle of activeObstacles) {
       if (obstacle.lane === playerLane) {
         if (obstacle.type === 'block' && playerPosition.y < 30) {
+          soundManager.playSound('gameOver');
           setGameState('gameOver');
           return;
         }
         if (obstacle.type === 'slide' && playerPosition.y === 0) {
+          soundManager.playSound('gameOver');
           setGameState('gameOver');
           return;
         }
@@ -130,6 +137,7 @@ const Game = () => {
 
     for (const coin of activeCoins) {
       if (coin.lane === playerLane) {
+        soundManager.playSound('coin');
         coin.collected = true;
         setCoins(prev => prev + 1);
         setScore(prev => prev + 10);
@@ -207,6 +215,11 @@ const Game = () => {
     setPathSegments(initialSegments);
   };
 
+  const toggleSound = () => {
+    const newState = soundManager.toggleSound();
+    setSoundEnabled(newState);
+  };
+
   return (
     <div className="game-container" ref={gameRef}>
       <div className="game-viewport">
@@ -236,6 +249,26 @@ const Game = () => {
       <div className="controls-hint">
         Use Arrow Keys to move, Space to jump
       </div>
+      
+      <button 
+        className="sound-toggle" 
+        onClick={toggleSound}
+        style={{
+          position: 'absolute',
+          top: '20px',
+          right: '20px',
+          padding: '10px',
+          backgroundColor: soundEnabled ? '#4CAF50' : '#f44336',
+          color: 'white',
+          border: 'none',
+          borderRadius: '5px',
+          cursor: 'pointer',
+          fontSize: '14px',
+          zIndex: 1000
+        }}
+      >
+        🔊 {soundEnabled ? 'ON' : 'OFF'}
+      </button>
     </div>
   );
 };
