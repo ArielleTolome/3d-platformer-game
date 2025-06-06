@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import './Game.css';
 import Player from './Player';
 import Path from './Path';
@@ -21,8 +21,7 @@ const Game = () => {
   const animationRef = useRef(null);
   const lastTimeRef = useRef(0);
 
-  const LANES = [-40, 0, 40];
-  const LANE_WIDTH = 40;
+  const LANES = useMemo(() => [-40, 0, 40], []);
   const SEGMENT_LENGTH = 200;
   const VISIBLE_SEGMENTS = 10;
 
@@ -58,7 +57,7 @@ const Game = () => {
     }
 
     return segment;
-  }, []);
+  }, [LANES]);
 
   useEffect(() => {
     const initialSegments = [];
@@ -96,7 +95,7 @@ const Game = () => {
       default:
         break;
     }
-  }, [gameState, playerLane]);
+  }, [gameState, playerLane, LANES]);
 
   useEffect(() => {
     window.addEventListener('keydown', handleKeyPress);
@@ -140,7 +139,6 @@ const Game = () => {
   const gameLoop = useCallback((timestamp) => {
     if (gameState !== 'playing') return;
 
-    const deltaTime = timestamp - lastTimeRef.current;
     lastTimeRef.current = timestamp;
 
     const currentSpeed = speed + Math.floor(score / 100) * 0.5;
