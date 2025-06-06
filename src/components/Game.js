@@ -13,6 +13,8 @@ const Game = () => {
   const [coins, setCoins] = useState(0);
   const [playerPosition, setPlayerPosition] = useState({ x: 0, y: 0, z: 0 });
   const [playerLane, setPlayerLane] = useState(1);
+  const [isJumping, setIsJumping] = useState(false);
+  const [jumpVelocity, setJumpVelocity] = useState(0);
   const [obstacles, setObstacles] = useState([]);
   const [collectibles, setCollectibles] = useState([]);
   const [pathSegments, setPathSegments] = useState([]);
@@ -25,6 +27,10 @@ const Game = () => {
   const LANE_WIDTH = 40;
   const SEGMENT_LENGTH = 200;
   const VISIBLE_SEGMENTS = 10;
+  const GRAVITY = 2.5;
+  const JUMP_VELOCITY = 25;
+  const GROUND_Y = 0;
+  const MAX_JUMP_HEIGHT = 50;
 
   const generateSegment = useCallback((zPosition) => {
     const segment = {
@@ -86,10 +92,10 @@ const Game = () => {
         break;
       case 'ArrowUp':
       case ' ':
-        setPlayerPosition(prev => ({ ...prev, y: 50 }));
-        setTimeout(() => {
-          setPlayerPosition(prev => ({ ...prev, y: 0 }));
-        }, 500);
+        if (!isJumping && playerPosition.y <= GROUND_Y) {
+          setIsJumping(true);
+          setJumpVelocity(JUMP_VELOCITY);
+        }
         break;
       case 'ArrowDown':
         break;
@@ -176,8 +182,21 @@ const Game = () => {
 
     checkCollisions();
 
+    if (isJumping) {
+      const newVelocity = jumpVelocity - GRAVITY;
+      const newY = Math.max(GROUND_Y, playerPosition.y + newVelocity);
+      
+      setJumpVelocity(newVelocity);
+      setPlayerPosition(prev => ({ ...prev, y: newY }));
+      
+      if (newY <= GROUND_Y) {
+        setIsJumping(false);
+        setJumpVelocity(0);
+      }
+    }
+
     animationRef.current = requestAnimationFrame(gameLoop);
-  }, [gameState, speed, score, generateSegment, checkCollisions]);
+  }, [gameState, speed, score, generateSegment, checkCollisions, isJumping, jumpVelocity, playerPosition.y]);
 
   useEffect(() => {
     if (gameState === 'playing') {
@@ -196,6 +215,8 @@ const Game = () => {
     setCoins(0);
     setPlayerPosition({ x: 0, y: 0, z: 0 });
     setPlayerLane(1);
+    setIsJumping(false);
+    setJumpVelocity(0);
     setObstacles([]);
     setCollectibles([]);
     setSpeed(5);
